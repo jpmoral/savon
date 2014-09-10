@@ -110,6 +110,7 @@ describe Savon::Client do
       wsdl = Wasabi::Document.new('http://example.com')
       operation = Savon::Operation.new(:authenticate, wsdl, Savon::GlobalOptions.new)
       operation.expects(:call).with(locals).returns(soap_response)
+      operation.expects(:request)
 
       Savon::Operation.expects(:create).with(
         :authenticate,
@@ -240,6 +241,30 @@ describe Savon::Client do
 
     it "raises when given an unknown option via the block syntax" do
       expect { new_client.request(:authenticate) { another_invalid_local_option true } }.to raise_error
+    end
+  end
+
+  describe "#last_request" do
+    it "returns the last request made" do
+      locals = { :message => { :symbol => "AAPL" } }
+      request = mock('request')
+      response = mock('response')
+
+      wsdl = Wasabi::Document.new('http://example.com')
+      operation = Savon::Operation.new(:authenticate, wsdl, Savon::GlobalOptions.new)
+      operation.expects(:call).with(locals).returns(response)
+      operation.expects(:request).returns(request)
+
+      Savon::Operation.expects(:create).with(
+        :authenticate,
+        instance_of(Wasabi::Document),
+        instance_of(Savon::GlobalOptions)
+      ).returns(operation)
+
+      client = new_client
+      client.call(:authenticate, locals)
+
+      expect(client.last_request).to eq(request)
     end
   end
 

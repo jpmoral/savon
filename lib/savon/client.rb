@@ -33,7 +33,10 @@ module Savon
     end
 
     def call(operation_name, locals = {}, &block)
-      operation(operation_name).call(locals, &block)
+      op = operation(operation_name)
+      @last_request = op.request
+
+      op.call(locals, &block)
     end
 
     def service_name
@@ -43,6 +46,10 @@ module Savon
 
     def request(operation_name, locals = {}, &block)
       operation(operation_name).request(locals, &block)
+    end
+
+    def last_request
+      @last_request
     end
 
     private
